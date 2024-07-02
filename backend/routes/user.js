@@ -6,7 +6,7 @@ const { User, Account } = require("../db/db.js");
 const { JWT_SECRET } = require("../config");
 const { authMiddleware } = require("../middleware"); // Update path
 // Signup Schema
-const signupSchema = z.object({
+const signupBody = z.object({
   username: z.string().email(),
   password: z.string(),
   lastName: z.string(),
@@ -107,12 +107,12 @@ router.put("/", authMiddleware, async (req, res) => {
 
   if (!success) {
     return res.status(400).json({
-      message: "Error while updating information",
+      message: "Invalid input data",
+      errors: updateBody.errorMap(data),
     });
   }
 
   try {
-    // Update user information based on userId from authMiddleware
     const updatedUser = await User.findByIdAndUpdate(req.userId, data, {
       new: true, // To return the updated document
     });
@@ -125,42 +125,41 @@ router.put("/", authMiddleware, async (req, res) => {
 
     res.json({
       message: "Updated successfully",
-      user: updatedUser, // Optionally return updated user data
+      user: updatedUser,
     });
   } catch (error) {
     console.error("Error while updating user:", error);
     res.status(500).json({
-      message: "Server error while updating information",
+      message: "Server error while updating user",
     });
   }
 });
 
 router.get("/bulk", async (req, res) => {
-  const filter = req.query.filter || "";
+  try {
+    const filter = req.query.filter || "";
 
-  const users = await User.find({
-    $or: [
-      {
-        firstName: {
-          $regex: filter,
-        },
-      },
-      {
-        lastName: {
-          $regex: filter,
-        },
-      },
-    ],
-  });
+    const users = await User.find({
+      $or: [
+        { firstName: { $regex: filter, $options: "i" } },
+        { lastName: { $regex: filter, $options: "i" } },
+      ],
+    });
 
-  res.json({
-    user: users.map((user) => ({
-      username: user.username,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      _id: user._id,
-    })),
-  });
+    res.json({
+      users: users.map((user) => ({
+        username: user.username,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        _id: user._id,
+      })),
+    });
+  } catch (error) {
+    console.error("Error while fetching bulk users:", error);
+    res.status(500).json({
+      message: "Server error while fetching bulk users",
+    });
+  }
 });
 
 module.exports = router;
