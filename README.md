@@ -13,7 +13,7 @@ This is a Paytm webpage created using React and JavaScript. The project aims to 
 - [Contributing](#contributing)
 - [License](#license)
 - [Contact](#contact)
-
+````
 ## Installation
 
 1. Clone the repository to your local machine:
@@ -21,7 +21,7 @@ This is a Paytm webpage created using React and JavaScript. The project aims to 
    ```sh
    git clone https://github.com/bajshorya/Paytm.git
    ```
-````
+
 
 2. Navigate to the project directory:
 
