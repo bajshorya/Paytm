@@ -11,7 +11,6 @@ This is a Paytm webpage created using React and JavaScript. The project aims to 
 - [Usage](#usage)
 - [Features](#features)
 - [Contributing](#contributing)
-- [License](#license)
 - [Contact](#contact)
 ````
 ## Installation
@@ -62,19 +61,15 @@ Contributions are welcome! Please follow these steps to contribute:
 5. Push to the branch (`git push origin feature/your-feature`).
 6. Open a pull request.
 
-## License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
 ## Contact
 
 If you have any questions, feel free to reach out to me at:
 
 - **Name:** Shorya Baj
-- **Email:** shoryabaj@example.com
+- **Email:** jain.shorya11@gmail.com
 - **GitHub:** [bajshorya](https://github.com/bajshorya)
 
 ```
 
-Replace `shoryabaj@example.com` with your actual email address and customize any other sections as needed. This `README.md` provides a structured overview of your project, making it easy for others to understand and contribute.
 ```
