@@ -1,15 +1,10 @@
-// backend/routes/user.js
 const express = require("express");
-
 const router = express.Router();
 const z = require("zod");
-const { User, Account } = require("../db");
 const jwt = require("jsonwebtoken");
+const { User, Account } = require("../db/db.js");
 const { JWT_SECRET } = require("../config");
-const { authMiddleware } = require("../middleware");
-
-const router = express.Router();
-
+const { authMiddleware } = require("../middleware"); // Update path
 // Signup Schema
 const signupSchema = z.object({
   username: z.string().email(),
@@ -19,35 +14,45 @@ const signupSchema = z.object({
 });
 
 router.post("/signup", async (req, res) => {
-  const body = req.body;
-  const result = signupSchema.safeParse(req.body);
-
-  if (!result.success) {
-    return res.status(400).json({
+  const { success } = signupBody.safeParse(req.body);
+  if (!success) {
+    return res.status(411).json({
       message: "Email already taken / Incorrect inputs",
     });
   }
 
-  const user = await User.findOne({
+  const existingUser = await User.findOne({
     username: req.body.username,
   });
 
-  if (user) {
-    return res.status(400).json({
-      message: "Email already taken / Incorrect inputs",
+  if (existingUser) {
+    return res.status(411).json({
+      message: "Email already taken/Incorrect inputs",
     });
   }
 
-  const dbUser = await User.create(body);
+  const user = await User.create({
+    username: req.body.username,
+    password: req.body.password,
+    firstName: req.body.firstName,
+    lastName: req.body.lastName,
+  });
+  const userId = user._id;
+
+  await Account.create({
+    userId,
+    balance: 1 + Math.random() * 10000,
+  });
+
   const token = jwt.sign(
     {
-      userId: dbUser._id,
+      userId,
     },
     JWT_SECRET
   );
 
   res.json({
-    message: "User created Successfully",
+    message: "User created successfully",
     token: token,
   });
 });
@@ -98,21 +103,38 @@ const updateBody = z.object({
 });
 
 router.put("/", authMiddleware, async (req, res) => {
-  const { success } = updateBody.safeParse(req.body);
+  const { success, data } = updateBody.safeParse(req.body);
+
   if (!success) {
-    res.status(411).json({
+    return res.status(400).json({
       message: "Error while updating information",
     });
   }
 
-  await User.updateOne(req.body, {
-    id: req.userId,
-  });
+  try {
+    // Update user information based on userId from authMiddleware
+    const updatedUser = await User.findByIdAndUpdate(req.userId, data, {
+      new: true, // To return the updated document
+    });
 
-  res.json({
-    message: "Updated successfully",
-  });
+    if (!updatedUser) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+
+    res.json({
+      message: "Updated successfully",
+      user: updatedUser, // Optionally return updated user data
+    });
+  } catch (error) {
+    console.error("Error while updating user:", error);
+    res.status(500).json({
+      message: "Server error while updating information",
+    });
+  }
 });
+
 router.get("/bulk", async (req, res) => {
   const filter = req.query.filter || "";
 
@@ -141,4 +163,4 @@ router.get("/bulk", async (req, res) => {
   });
 });
 
-export default router;
+module.exports = router;
