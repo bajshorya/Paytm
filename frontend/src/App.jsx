@@ -8,7 +8,6 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Navigate to="/signup" />} />{" "}
         {/* Redirect to Signin */}
         <Route path="/signup" element={<Signup />} />
         <Route path="/signin" element={<Signin />} />

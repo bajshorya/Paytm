@@ -14,10 +14,12 @@ const signupBody = z.object({
 });
 
 router.post("/signup", async (req, res) => {
-  const { success } = signupBody.safeParse(req.body);
-  if (!success) {
-    return res.status(411).json({
-      message: "Email already taken / Incorrect inputs",
+  const parseResult = signupBody.safeParse(req.body);
+
+  if (!parseResult.success) {
+    return res.status(400).json({
+      message: "Incorrect inputs",
+      errors: parseResult.error.errors,
     });
   }
 
@@ -26,37 +28,45 @@ router.post("/signup", async (req, res) => {
   });
 
   if (existingUser) {
-    return res.status(411).json({
-      message: "Email already taken/Incorrect inputs",
+    return res.status(409).json({
+      message: "Email already taken",
     });
   }
 
-  const user = await User.create({
-    username: req.body.username,
-    password: req.body.password,
-    firstName: req.body.firstName,
-    lastName: req.body.lastName,
-  });
-  const userId = user._id;
+  try {
+    const user = await User.create({
+      username: req.body.username,
+      password: req.body.password,
+      firstName: req.body.firstName,
+      lastName: req.body.lastName,
+    });
+    const userId = user._id;
 
-  await Account.create({
-    userId,
-    balance: 1 + Math.random() * 10000,
-  });
-
-  const token = jwt.sign(
-    {
+    await Account.create({
       userId,
-    },
-    JWT_SECRET
-  );
+      balance: 1 + Math.random() * 10000,
+    });
 
-  res.json({
-    message: "User created successfully",
-    token: token,
-  });
+    const token = jwt.sign(
+      {
+        userId,
+      },
+      JWT_SECRET
+    );
+
+    res.json({
+      message: "User created successfully",
+      token: token,
+    });
+  } catch (error) {
+    console.error("Error creating user:", error);
+    res.status(500).json({
+      message: "Server error while creating user",
+    });
+  }
 });
 
+module.exports = router;
 // Signin Schema
 const signinSchema = z.object({
   username: z.string().email(),
