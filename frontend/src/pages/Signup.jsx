@@ -4,12 +4,15 @@ import Button from "../components/Button";
 import Heading from "../components/Heading";
 import InputBox from "../components/InputBox";
 import SubHeading from "../components/SubHeading";
+import { useNavigate } from "react-router-dom";
+
 import axios from "axios";
 const Signup = () => {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const navigate = useNavigate();
 
   return (
     <>
@@ -48,13 +51,18 @@ const Signup = () => {
             />
             <div className="pt-4">
               <Button
-                onClick={() => {
-                  axios.post("http://localhost:3000/api/v1/user/signup", {
-                    username,
-                    firstName,
-                    lastName,
-                    password,
-                  });
+                onClick={async () => {
+                  const response = await axios.post(
+                    "http://localhost:3000/api/v1/user/signup",
+                    {
+                      username,
+                      firstName,
+                      lastName,
+                      password,
+                    }
+                  );
+                  localStorage.setItem("token", response.data.token);
+                  navigate("/dashboard");
                 }}
                 label={"Sign up"}
               />
